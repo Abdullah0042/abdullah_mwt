@@ -1,0 +1,48 @@
+version: '3.1'
+
+networks:
+  todos:
+    driver: bridge
+
+services:
+  postgresdb:
+    image: postgres:latest
+    container_name: postgresdb-composed
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pvs
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - todos
+
+  backend:
+    build:
+      context: ./abdullah
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgresdb
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresdb:5432/pvs
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+    networks:
+      - todos
+
+  frontend:
+    build:
+      context: ./mwt-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - todos
+
+
+volumes:
+  postgres-data:
+
+
